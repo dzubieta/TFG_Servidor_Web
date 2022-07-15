@@ -1,0 +1,733 @@
+{% load static %}
+{% block content %}
+
+<html>
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKn5YAFZK_y3LfVVDRhTXGRz-0SZE5EN0&callback=initMap&libraries=visualization&v=weekly"
+  defer
+></script>
+
+<style media="screen">
+/*
+ * Always set the map height explicitly to define the size of the div element
+ * that contains the map.
+ */
+#map {
+  height: 100%;
+}
+
+/*
+ * Optional: Makes the sample page fill the window.
+ */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto';
+}
+
+#floating-panel {
+  position: absolute;
+  top: 10px;
+  left: 25%;
+  z-index: 5;
+  background-color: #fff;
+  padding: 5px;
+  border: 1px solid #999;
+  text-align: center;
+  font-family: "Roboto", "sans-serif";
+  line-height: 30px;
+  padding-left: 10px;
+}
+
+#floating-panel {
+  background-color: #fff;
+  border: 1px solid #999;
+  left: 25%;
+  padding: 5px;
+  position: absolute;
+  top: 10px;
+  z-index: 5;
+}
+
+.sidenav {
+  width: auto;
+  position: fixed;
+  z-index: 1;
+  top: 100px;
+  left: 10px;
+  background-color: rgba(245, 245, 245, 0.85);
+  overflow-x: hidden;
+  padding: 8px 0;
+  border: 1px solid rgba(230, 230, 230, 1);
+  border-radius: 2%;
+}
+
+.sidenav2 {
+  width: auto;
+  position: fixed;
+  z-index: 1;
+  bottom: 200px;
+  right: 10px;
+  background-color: rgba(245, 245, 245, 0.85);
+  overflow-x: hidden;
+  padding: 8px 0;
+  border: 1px solid rgba(230, 230, 230, 1);
+  border-radius: 2%;
+}
+
+.sidenavText {
+  margin: 1em;
+  text-align: center;
+}
+.sidenavBtn {
+  margin-bottom: -50px;
+  text-align: right;
+}
+
+.main {
+  margin-left: 140px; /* Same width as the sidebar + left position in px */
+  font-size: 28px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+
+.container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Create a custom radio button */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: #2196F3;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.container .checkmark:after {
+ 	top: 9px;
+	left: 9px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: white;
+}
+
+.radio {
+  display: inline-flex;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+  margin-bottom: 5px;
+}
+
+.radio_input {
+  display: none;
+}
+
+.radio_label {
+  padding: 8px 14px;
+  font-size: 14px;
+  color: white;
+  background-color: #35ddff; /*#35cee6;*/
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+.radio_label:hover {
+  background-color: #2cb5d1;
+}
+
+.radio_label:not(:last-of-type) {
+  border-right: 1px solid #2cb5d1;
+}
+
+.radio_input:checked + .radio_label {
+  background-color: #2cb5d1;
+}
+
+.btnSubmit {
+  height: 50%;
+  width: 50%;
+  padding: 12px;
+  background-color: #35ddff; /*#35cee6;*/
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  font-family: "Roboto", "sans-serif";
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+}
+
+.btnSubmit:hover {
+  background-color: #2cb5d1;
+}
+
+.tituloNavBar {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 28px;
+  color: #2cb5d1;
+  display: block;
+  weight:bolder;
+}
+
+.tituloSecNavBar {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 23px;
+  color: #35ddff;
+  display: block;
+  weight:bold;
+}
+
+.tituloLeyenda {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #2cb5d1;
+  display: block;
+  weight:bolder;
+}
+
+.tituloTextoLeyenda {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 16px;
+  color: #35ddff;
+  display: block;
+  weight:bold;
+}
+
+input[type="date"], input[type="time"] {
+  background-color: #35ddff;
+  padding: 5px;
+  font-family: "Roboto", "sans-serif";
+  color: white;
+  border: none;
+  outline: none;
+  border-radius: 5px;
+}
+
+.btnControl {
+  height: 25%;
+  width: 25%;
+  padding: 4px;
+  margin: 10px;
+  background-color: #35ddff; /*#35cee6;*/
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  font-family: "Roboto", "sans-serif";
+  font-weight: bold;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+}
+.btnControl:hover {
+  background-color: #2cb5d1;
+}
+
+.circle {
+  height: 15px;
+  width: 15px;
+  background-color: #555;
+  border-radius: 50%;
+  border: 0.25px solid #2b2b2b;
+}
+
+#detalle {
+  position: fixed;
+  height: auto;
+  width: 30%;
+  left: 35%;
+  top: 35%;
+  background-color: rgba(245, 245, 245, 0.95);;
+  z-index: 6;
+  transition: 0.15s ease-in-out;
+  overflow-x: hidden;
+  padding: 8px 0;
+  border: 1px solid rgba(230, 230, 230, 1);
+  border-radius: 2%;
+}
+
+
+.btnCerrar {
+  height: 30px;
+  width: 30px;
+  padding: 4px;
+  margin: 10px;
+  background-color: transparent; /*#35cee6;*/
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  font-family: "Roboto", "sans-serif";
+  font-weight: bold;
+  border-radius: 100%;
+  left: -90%;
+}
+
+</style>
+
+<script type="text/javascript">
+// This example requires the Visualization library. Include the libraries=visualization
+// parameter when you first load the API. For example:
+// <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
+let map, heatmap;
+var datos = [], markers = [];
+var lats = [], longs = [], weights = [];
+var max_weight = 0;
+// Heatmap data: 500 Points
+function addLat(lat) {
+  lats.push(lat);
+}
+function addLong(lon) {
+  longs.push(lon);
+}
+function addMeasure(meas) {
+  weights.push(meas);
+}
+
+document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    if (evt.keyCode == 27) {
+        document.getElementById("detalle").hidden = true;
+    }
+};
+
+/*var icons = {
+  station_green: {
+    icon: '..\stations\static\station_green.png'
+  },
+  station_yellow: {
+    icon: '..\stations\static\station_yellow.png'
+  },
+  station_red: {
+    icon: '..\stations\static\station_red.png'
+  },
+};*/
+var icons = ["https://cdn-icons-png.flaticon.com/24/3563/3563393.png", "https://cdn-icons-png.flaticon.com/24/3563/3563394.png", "https://cdn-icons-png.flaticon.com/24/3563/3563395.png"];
+var url_string = window.location.href;
+var url = new URL(url_string);
+var gas = url.searchParams.get("gas");
+
+function getO3Weight(medicion){
+  medicion = parseFloat(medicion);
+  var peso = 0;
+  if(medicion>=0 && medicion<60){
+    peso = 1;
+  }else if (medicion>=60 && medicion<180){
+    peso = 2;
+  }else if (medicion>=180){
+    peso = 3;
+  }
+  return peso;
+}
+
+function getNO2Weight(medicion){
+
+  medicion = parseFloat(medicion);
+  var peso = 0;
+  if(medicion>=0 && medicion<100){
+    peso = 1;
+  }else if (medicion>=100 && medicion<676){
+    peso = 2;
+  }else if (medicion>=676){
+    peso = 3;
+  }
+  return peso;
+}
+
+function getSO2Weight(medicion){
+  var peso = 0;
+  medicion = parseFloat(medicion);
+  if(medicion>=0 && medicion<93){
+    peso = 1;
+  }else if (medicion>=93 && medicion<486){
+    peso = 2;
+  }else if (medicion>=486){
+    peso = 3;
+  }
+  return peso;
+}
+
+function getCOWeight(medicion){
+  var peso = 0;
+  medicion = parseFloat(medicion);
+  if(medicion>=0 && medicion<4){
+    peso = 1;
+  }else if (medicion>=4 && medicion<10){
+    peso = 2;
+  }else if (medicion>=10){
+    peso = 3;
+  }
+  console.log("Esto es el pesooooooooooooooooooooooooooooooooooooooooo"+ peso + " " +medicion);
+  return peso;
+}
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 13,
+    center: { lat: 40.4167278, lng: -3.7033387 },
+    mapTypeId: "roadmap",
+    streetViewControl: false,
+    clickableIcons: false,
+  });
+  lats.forEach((item, i) => {
+    var weight = 0;
+    switch (gas) {
+      case "O3":
+        weight = getO3Weight(weights[i]);
+      break;
+      case "NO2":
+        weight = getNO2Weight(weights[i]);
+      break;
+      case "SO2":
+        weight = getSO2Weight(weights[i]);
+      break;
+      case "CO":
+        weight = getCOWeight(weights[i]);
+      break;
+      default:
+        weight = 0;
+      break;
+    }
+    datos.push({location: new google.maps.LatLng(lats[i], longs[i]), weight: weight + ""});
+    console.log(datos.length);
+    if (weights[i] > max_weight) max_weight = weights[i];
+  });
+
+  lats.forEach((item, i) => {
+    var pos = 0;
+    var third = max_weight/3;
+    if(weights[i] >= 0 && weights[i] < third) {
+      pos = 0;
+    } else if(weights[i] >= third && weights[i] < third*2) {
+      pos = 1;
+    } else if(weights[i] >= third*2 && weights[i] <= max_weight) {
+      pos = 2;
+    }
+    marker = new google.maps.Marker({
+      position: new google.maps.LatLng(lats[i], longs[i]),
+      map: map,
+      icon: icons[pos],
+      animation: google.maps.Animation.DROP,
+    });
+    marker.addListener("click", () => {
+      document.getElementById("txtDetalleGas").textContent = gas;
+      document.getElementById("txtDetalleLat").textContent = lats[i] + "º";
+      document.getElementById("txtDetalleLong").textContent = longs[i] + "º";
+      document.getElementById("txtDetalleWeight").textContent = weights[i] +" μg/m³";
+
+      document.getElementById("inputDetalleGas").value = gas;
+      document.getElementById("inputDetalleLat").value = lats[i];
+      document.getElementById("inputDetalleLong").value = longs[i];
+      document.getElementById("inputDetalleWeight").value = weights[i];
+
+      document.getElementById("detalle").hidden = false;
+    });
+    markers.push(marker);
+
+  });
+  /*lats.forEach((item, i) => {
+    datos.push(new google.maps.LatLng(lats[i], longs[i]));
+    console.log("LAT" + lats[i] + " LONGS " + longs[i] + " WERIGHT " + weights[i] + "DATOS SIZE" + datos.length);
+  });*/
+
+  //new google.maps.LatLng(37.782, -122.447)
+
+
+  datos.push({location: new google.maps.LatLng(0, 0), weight: 1});
+  datos.push({location: new google.maps.LatLng(1, 1), weight: 2});
+  datos.push({location: new google.maps.LatLng(2, 2), weight: 3});
+
+  heatmap = new google.maps.visualization.HeatmapLayer({
+    data: datos,
+    map: map,
+  });
+  console.log(datos.length);
+  heatmap.set("radius", heatmap.get("radius") ? null : 100);
+  document
+    .getElementById("toggle-heatmap")
+    .addEventListener("click", toggleHeatmap);
+  document
+    .getElementById("toggle-markers")
+    .addEventListener("click", toggleMarkersMap);
+}
+
+function toggleMarkersMap() {
+  markers.forEach((item, i) => {
+    markers[i].setMap(markers[i].getMap() ? null : map);
+  });
+
+}
+
+function toggleHeatmap() {
+  heatmap.setMap(heatmap.getMap() ? null : map);
+}
+
+function changeGradient() {
+  const gradient = [
+    "rgba(0, 255, 255, 0)",
+    "rgba(0, 255, 255, 1)",
+    "rgba(0, 191, 255, 1)",
+    "rgba(0, 127, 255, 1)",
+    "rgba(0, 63, 255, 1)",
+    "rgba(0, 0, 255, 1)",
+    "rgba(0, 0, 223, 1)",
+    "rgba(0, 0, 191, 1)",
+    "rgba(0, 0, 159, 1)",
+    "rgba(0, 0, 127, 1)",
+    "rgba(63, 0, 91, 1)",
+    "rgba(127, 0, 63, 1)",
+    "rgba(191, 0, 31, 1)",
+    "rgba(255, 0, 0, 1)",
+  ];
+
+  heatmap.set("gradient", heatmap.get("gradient") ? null : gradient);
+}
+
+function changeRadius() {
+  heatmap.set("radius", heatmap.get("radius") ? null : 50);
+}
+
+function changeOpacity() {
+  heatmap.set("opacity", heatmap.get("opacity") ? null : 0.2);
+}
+
+function checkGasRadio(gasName) {
+  document.getElementById("radio"+gasName.toUpperCase()).checked = true;
+}
+
+function checkStationRadio(stationType) {
+  document.getElementById("radio"+stationType.toUpperCase()).checked = true;
+}
+function checkDateRellena() {
+  if (document.getElementById("date").value != "") {
+    document.getElementById("time").required = true;
+  } else {
+    document.getElementById("time").required = false;
+  }
+}
+
+function desact() {
+  if(document.getElementById("toggle-heatmap").innerHTML == "Desactivar gradiente") {
+    document.getElementById("toggle-heatmap").innerHTML = "Activar gradiente";
+  } else {
+    document.getElementById("toggle-heatmap").innerHTML = "Desactivar gradiente";
+  }
+}
+
+function desactStation() {
+  if(document.getElementById("toggle-markers").innerHTML == "Desactivar estaciones") {
+    document.getElementById("toggle-markers").innerHTML = "Activar estaciones";
+  } else {
+    document.getElementById("toggle-markers").innerHTML = "Desactivar estaciones";
+  }
+}
+
+function fotos(fotoVerde, fotoAmarilla, fotoRoja){
+  icons.push(fotoVerde);
+  icons.push(fotoAmarilla);
+  icons.push(fotoRoja);
+}
+
+function cerrarDetalle(){
+  document.getElementById("detalle").hidden = true;
+}
+
+
+</script>
+  <head>
+    <title>Heatmaps</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+<!--    <link rel="stylesheet" type="text/css" href=".\style.css" />
+    <script type="module" src=".\index.js"></script> -->
+  </head>
+  <body>
+    {% for result in results %}
+    <script> addLat("{{result.lat}}"); addLong("{{result.longi}}"); addMeasure("{{result.gas_measure}}");//getPoints("{{result.lat}}", "{{result.longi}}", "{{result.gas_measure}}");
+    </script>
+    {% endfor %}
+    <script> window.initMap = initMap; </script>
+    <div id="map"></div>
+    <div id="detalle" hidden>
+      <div class="sidenavBtn">
+        <img src="https://cdn-icons-png.flaticon.com/512/545/545676.png" width="24" height="24" class="btnCerrar" id="btnCerrarDetalle" onclick="cerrarDetalle()" />
+      </div>
+      <div class="sidenavText">
+        <form method="post" action="./download">
+          {% csrf_token %}
+          <a class="tituloNavBar">DETALLE ESTACIÓN</a>
+          <table align="center">
+            <tr>
+              <td><a class="tituloNavBar">Gas:</a></td>
+              <td> <p class="tituloSecNavBar" id="txtDetalleGas"></td>
+                <input type="hidden" id="inputDetalleGas" name="inputDetalleGas" value=""/>
+            </tr>
+            <tr>
+              <td><a class="tituloNavBar">Latitud:</a></td>
+              <td> <p class="tituloSecNavBar" id="txtDetalleLat"></td>
+                <input type="hidden" id="inputDetalleLat" name="inputDetalleLat" value=""/>
+            </tr>
+            <tr>
+              <td><a class="tituloNavBar">Longitud:</a></td>
+              <td> <p class="tituloSecNavBar" id="txtDetalleLong"></td>
+                <input type="hidden" id="inputDetalleLong" name="inputDetalleLong" value=""/>
+            </tr>
+            <tr>
+              <td><a class="tituloNavBar">Medición:</a></td>
+              <td> <p class="tituloSecNavBar" id="txtDetalleWeight"></td>
+                <input type="hidden" id="inputDetalleWeight" name="inputDetalleWeight" value=""/>
+            </tr>
+          </table><br>
+          <button type="submit" class="btnSubmit">Descargar datos de estación</button>
+        </form>
+
+      </div>
+    </div>
+    <div class="sidenav">
+      <form method="get" action="">
+        <div class="sidenavText">
+            <a class="tituloNavBar">Visor huella ecológica </a>
+            <a class="tituloSecNavBar">Gas</a>
+            <div class="radio">
+
+              <input class="radio_input" type="radio" value="CO" name="gas" id="radioCO">
+              <label for="radioCO" class="radio_label">CO</label>
+              <input class="radio_input" type="radio" value="NO2" name="gas" id="radioNO2">
+              <label for="radioNO2" class="radio_label">NO2</label>
+              <input class="radio_input" type="radio" value="O3" name="gas" id="radioO3">
+              <label for="radioO3" class="radio_label">O3</label>
+              <input class="radio_input" type="radio" value="SO2" name="gas" id="radioSO2">
+              <label for="radioSO2" class="radio_label">SO2</label>
+
+            </div>
+            <a class="tituloSecNavBar">Estación</a>
+            <div class="radio">
+
+              <input class="radio_input" type="radio" value="all" name="station" id="radioALL">
+              <label for="radioALL" class="radio_label">Todas</label>
+              <input class="radio_input" type="radio" value="dynamic" name="station" id="radioDYNAMIC">
+              <label for="radioDYNAMIC" class="radio_label">Dinámica</label>
+              <input class="radio_input" type="radio" value="static" name="station" id="radioSTATIC">
+              <label for="radioSTATIC" class="radio_label">Estática</label>
+
+            </div>
+
+            <a class="tituloSecNavBar">Fecha y hora</a>
+            <label for="start">Selecciona una fecha:</label>
+            <input type="date" id="date" name="date"
+             min="2022-04-01" onchange="checkDateRellena()"><br><br>
+
+             <label for="appt">Selecciona una hora:</label>
+             <input type="time" id="time" name="time"
+             min="00:00" max="23:00">
+             <br><br>
+             <button type="submit" class="btnSubmit">Buscar</button>
+         </div>
+
+         <script>
+           checkGasRadio("{{gas}}");
+           checkStationRadio("{{stationType}}");
+         </script>
+       </form>
+       <div>
+         <hr style="color: rgba(0, 0, 0, 0.3);">
+
+         <div align="center">
+           <button class="btnControl" id="toggle-heatmap" onclick="desact()">Desactivar gradiente</button>
+           <button class="btnControl" id="toggle-markers" onclick="desactStation()">Desactivar estaciones</button>
+         </div>
+       </div>
+      </div>
+
+      <div class="sidenav2">
+          <div class="sidenavText">
+            <a class="tituloLeyenda">Leyenda</a>
+            <table>
+              <tr>
+                <td><div class="circle" style="background-color: #42ff03;"></div></td>
+                <td><a class="tituloTextoLeyenda" style="color: #42ff03;">Bueno</a></td>
+              </tr>
+              <tr>
+                <td><div class="circle" style="background-color: #fcfc03;"></div></td>
+                <td><a class="tituloTextoLeyenda" style="color: #fcfc03;">Moderado</a></td>
+              </tr>
+              <tr>
+                <td><div class="circle" style="background-color: #fc0303;"></div></td>
+                <td><a class="tituloTextoLeyenda" style="color: #fc0303;">Insano</a></td>
+              </tr>
+              <tr>
+                <td><div class="circle" style="background-color: #680180;"></div></td>
+                <td><a class="tituloTextoLeyenda" style="color: #680180;">Muy insano</a></td>
+              </tr>
+            </table>
+           </div>
+        </div>
+
+  <!--  <div id="Leyenda">
+      <button id="toggle-heatmap">Toggle Heatmap {{gas}} </button>
+      <button id="change-gradient">Change gradient</button>
+      <button id="change-radius">Change radius</button>
+      <button id="change-opacity">Change opacity</button>
+    </div> -->
+    <!--
+     The `defer` attribute causes the callback to execute after the full HTML
+     document has been parsed. For non-blocking uses, avoiding race conditions,
+     and consistent behavior across browsers, consider loading using Promises
+     with https://www.npmjs.com/package/@googlemaps/js-api-loader.
+    -->
+
+  </body>
+</html>
+{% endblock %}
